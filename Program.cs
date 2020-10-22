@@ -31,6 +31,8 @@ public class Program
         Player Player = new Player( "Callum",10 );
                                             // R       L      U      D
         Locations Locations = new Locations( false, false, false, false );
+                            //  fear, bravery
+        stats stats = new stats( 1, 1 );
     
 
         string[,] dungeonMap = new string[,] 
@@ -62,16 +64,24 @@ public class Program
 
         Console.WriteLine( dungeonMap[ row, column] );
         Console.WriteLine($"HP:{ Player.health }");
+
+        stats.fearMeter ++;
+        stats.braveryMeter --;
+        if( stats.fearMeter < 0 ) { stats.fearMeter = 0; }
+        if( stats.braveryMeter < 0 ) { stats.braveryMeter = 0; }
+
+        Console.WriteLine($"Fear:{ stats.fearMeter } \nBravery:{ stats.braveryMeter }");
+
        
         if( column == 0 && row == 0 ) 
          { Locations.canGoD = true; Locations.canGoR = true; Locations.canGoU = false; Locations.canGoL = false;} //starter room
 
 
-        if( column == 0 && row == 1 ) 
-        { Locations.canGoD = true; Locations.canGoL = true; Locations.canGoR = true; Locations.canGoU = false;} // potion room
+       else if( column == 0 && row == 1 ) 
+        { Locations.canGoD = false; Locations.canGoL = true; Locations.canGoR = true; Locations.canGoU = false;} // potion room
 
 
-        if( column == 0 && row == 2 ) //big enemy room
+       else if( column == 0 && row == 2 ) //big enemy room
         {
             Locations.canGoR = false; Locations.canGoU = false; Locations.canGoL = true; Locations.canGoD = true;
 
@@ -86,21 +96,30 @@ public class Program
                     {
                     if( hasSword == true )
                     {
-                        Console.WriteLine($"You deal a devestating blow with your sword to the monster! \n You dealt { rngHitSword.Next(100) } damage!"); 
+                        Console.WriteLine($"You deal a devestating blow with your sword to the monster! \n You dealt { rngHitSword.Next(101) } damage!"); 
                         Console.WriteLine("You slayed the great beast! The monster falls to the ground and allows you to pass."); 
                         bigMonster = false;
-                        Console.WriteLine( dungeonMap[ row, column ] );
-                        Console.WriteLine($"HP:{ Player.health }");
-                        Console.WriteLine("Do you go left or down?");
+                        stats.fearMeter -= 10;
+                        stats.braveryMeter += 10;                  
                     }
                     if( hasSword == false )
                     {
-                        Console.WriteLine($"You punch the monster in its face!\n You dealt { rngHit.Next(5)} damage");
-                        var bruh = rngDamTaken.Next(5);
-                        Player.health -= bruh;
-                        Console.WriteLine($"Wow. You did almost nothing to the monster with that punch. You get punched back by the monster and take { bruh } damage. Ouch!\nYou run back the way you came.");
+                        int damage = rngHit.Next(5);
+                        Console.WriteLine($"You punch the monster in its face!\n You dealt { rngHit.Next(5) } damage");
+                        var damageTaken = damage;
+                        Player.health -= damageTaken;
+                        Console.WriteLine($"Wow. You did almost nothing to the monster with that punch. You get punched back by the monster and take { damageTaken } damage. Ouch!\nYou run back the way you came.");
                         row -= 1;
-                        Console.WriteLine( dungeonMap[ row, column ] );
+
+                        Console.WriteLine( dungeonMap[ row, column ] );     //stat and location after running away
+                        stats.fearMeter += 5;
+                        stats.braveryMeter -= 5;  
+                        Console.WriteLine($"HP:{ Player.health }");
+                        stats.fearMeter ++;
+                        stats.braveryMeter --;
+                        if( stats.fearMeter < 0 ) { stats.fearMeter = 0; }
+                        if( stats.braveryMeter < 0 ) { stats.braveryMeter = 0; }
+                        Console.WriteLine($"Fear:{ stats.fearMeter } \nBravery:{ stats.braveryMeter }");
                     }
                     break;
                     }
@@ -108,6 +127,8 @@ public class Program
                 if(inputBM == "left") //run away
                 {
                     row -= 1;
+                    stats.fearMeter += 2;
+                    stats.braveryMeter -= 2;  
                 }
            
            }
@@ -119,15 +140,18 @@ public class Program
            }
         }
 
-           if( column == 1 && row == 0 && Player.health < 10)//healing pool
+          else if( column == 1 && row == 0 && Player.health < 10)//healing pool
          {
              Locations.canGoD = true; Locations.canGoU = true; Locations.canGoR = false; Locations.canGoL = false;
              Player.health = 10;
-             Console.WriteLine("You walk into a room filled with shallow, glowing water. You decide to swim in the water...\nThe glowing water healed you back to full health!");
+             Console.WriteLine("You decide to swim in the strange water...\nThe glowing water healed you back to full health!");
              Console.WriteLine($"HP:{ Player.health }");
+             stats.fearMeter -= 5;
+             stats.braveryMeter += 3;  
+             Console.WriteLine($"Fear:{ stats.fearMeter } \nBravery:{ stats.braveryMeter }");
          }
 
-          if( column == 1 && row == 1 ) //pick up key
+         else if( column == 1 && row == 1 ) //pick up key
          {
              Locations.canGoD = true; Locations.canGoU = false; Locations.canGoR = false; Locations.canGoL = false;
 
@@ -135,17 +159,21 @@ public class Program
              {
                   Console.WriteLine("You pick up a Key laying in the center of the room.");
                   hasKey = true;
+                  stats.fearMeter -= 1;
+                  stats.braveryMeter += 1;  
              }
             
              Console.WriteLine("You can only go down.");
          }
 
-             if( column == 1 && row == 2) //key door
+            else if( column == 1 && row == 2) //key door
          {
              if( hasKey == true)
              {
                  Console.WriteLine("You place your key into the lock and it turns. \n Do you go up or down?");
                  Locations.canGoD = true; Locations.canGoU = true; Locations.canGoR = false; Locations.canGoL = false;
+                 stats.fearMeter -= 5;
+                 stats.braveryMeter += 5;  
              }
              if( hasKey == false)
              {
@@ -154,7 +182,7 @@ public class Program
              }
          }
 
-          if( column == 2 && row == 0 ) //armory
+         else if( column == 2 && row == 0 ) //armory
         {
 
             Locations.canGoU = true; Locations.canGoD = false; Locations.canGoR = true; Locations.canGoL = false;
@@ -162,13 +190,15 @@ public class Program
             {
              Console.WriteLine("You pick up a sword that was laying agaist the back wall.");
              hasSword = true;
+             stats.fearMeter -= 3;
+             stats.braveryMeter += 3;  
             }
             Console.WriteLine("Do you go up or right?");
         }
 
-         if( column == 2 && row == 1 )//small enemy room
+        else if( column == 2 && row == 1 )//small enemy room
          {
-           Locations.canGoU = false; Locations.canGoD = false; Locations.canGoR = true; Locations.canGoL = true;
+           Locations.canGoU = true; Locations.canGoD = false; Locations.canGoR = false; Locations.canGoL = true;
 
              if( smallMonster == true && hasSword == true )
              {
@@ -180,19 +210,26 @@ public class Program
                    Console.WriteLine($"You deal a devestating blow with your sword to the monster! \n You dealt { rngHitSword.Next(50)} damage!"); 
                    Console.WriteLine("You slayed the beast! The monster falls to the ground and allows you to pass."); 
                    smallMonster = false;
-                   Console.WriteLine( dungeonMap[ row, column] );
-                   Console.WriteLine("Do you go left or up?");
+                   stats.fearMeter -= 3;
+                   stats.braveryMeter += 3;  
             }
               if(inputSM == "left") //run away
                 {
                     row -= 1;
                     Console.WriteLine( dungeonMap[ row, column ] );
+                    stats.fearMeter += 2;
+                    stats.braveryMeter -= 2;  
                 }
+             }
+             if( smallMonster == false )
+             {
+                 Console.WriteLine( dungeonMap[ row, column ] );
+                 Console.WriteLine("Do you go left or up?");
              }
            
          }
         
-         if( column == 2 && row == 2 ) //end
+        else if( column == 2 && row == 2 ) //end
          {
              Console.WriteLine( dungeonMap[ row, column] );
              break;
@@ -207,19 +244,47 @@ public class Program
         Console.WriteLine("Input below:"); //player movement
 
         string input = Console.ReadLine();
-        if(input == "up" && column > 0 && Locations.canGoU == true)
+        switch(input)
         {
-            column -= 1;
-        } else if( input == "down" && column < 2 && Locations.canGoD == true)
-        {
-            column += 1;
-        } else if( input == "right" && row < 2 && Locations.canGoR == true)
-        {
-            row += 1;
-        } else if( input == "left" && row > 0 && Locations.canGoL == true)
-        {
-            row -= 1;
+            case "up":
+            {
+             if( column > 0 && Locations.canGoU == true)
+                    {
+                        column -= 1;
+                    } else { column -= 0; }
+                break;
+            }
+            case "down":
+            {
+             if( column < 2 && Locations.canGoD == true)
+                  {
+                      column += 1;
+                  } else{ column =+ 0; }
+                break;
+            }
+            case "right":
+            {
+             if( row < 2 && Locations.canGoR == true)
+                {
+                   row += 1;
+                } else { row += 0; }
+                break;
+            }
+            case "left":
+            {
+             if( row > 0 && Locations.canGoL == true)
+                  {
+                      row -= 1;
+                  } else { row -= 0; }
+                break;
+            }
+            default:
+            {
+                Console.WriteLine("Wrong Input.");
+                break;
+            }
         }
+     
        
 
   

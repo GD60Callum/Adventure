@@ -10,7 +10,9 @@ The player has a health bar that can be damaged by an enemy if they do not have 
 I have a sword and key item that the player picks up at specific locations just using bools.
 The only way out of the while loop is to get to the escape location (2,2), or by dying.
 
+I also got my 'walls' to funcion for the most part. If the text says you can go up or down, but the user types 'left' then you will not move.
+
 Not Working:
 
-The main problem I'm facing is that the restrictions in place for movement do not work.
-The player can't move outside the map boundries, but they can go anywhere inside the map by typing: up, down, left, right
+When at the healing pool room for some reason you can go through the right wall even though I have my 'Locations.canGoR' (can go right) set to false at this area
+
